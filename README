@@ -1,0 +1,76 @@
+gaogao - human-unfriendly wrapper for jail_set(2)
+=================================================
+
+Usage
+-----
+
+    gaogao [<type><data> ...] ["" prog...]
+
+`<type>` is a single character, optionally prefixed by a space, and the meaning
+of `<data>` depends on `<type>` as follows:
+
+- `S`: a string, `<data>`
+- `J`: an int; `<data>` is parsed by strtol(3)
+- `Z`: NULL; `<data>` is meaningless and discarded
+- `A`: an IPv4 address; `<data>` is parsed by inet_pton(3)
+- `G`: an IPv6 address; `<data>` is parsed by inet_pton(3)
+- `M`: a list of case-sensitive flags, upper- and lower-case `cuad`, represent
+  JAIL_CREATE, JAIL_UPDATE, JAIL_ATTACH, and JAIL_DYING, respectively. The flag
+  is ORed in on a lowercase letter and masked out for an uppercase letter. See
+  jail(2) for detail on what the flags mean.
+
+Description
+-----------
+
+The `gaogao` program is a very thin wrapper around FreeBSD's jail_set(2) system
+call. It reads parameters from its command line up to the first empty string,
+calls jail_set(2), and, if successful, optionally execvp(3)s the rest of its
+command line.
+
+In order to minimize error-prone parsing, `gaogao` takes its arguments only as
+*char-tagged unions*. That is, each argument consists of a single character
+denoting its type followed by a string representing its value.  Optionally, for
+compatibility with skarnet's execlineb syntax, parameters may be prefixed with
+a single space, which is ignored.
+
+The interface, with invocations of the form `gaogao Sjid J6 Snopersist Z MCu`,
+is admittedly not very human-friendly. While it is important that `gaogao` is
+not overtly hostile to being run from a shell, other design considerations take
+priority over presenting a friendly interface:
+
+- `gaogao` provides a *scriptable* interface to jail_set(2). This requires its
+  input to be simple to emit correctly, while being expressive enough to set
+  any reasonable parameters a user might supply without neeeding recompilation.
+  any reasonable set of parameters a user might want to supply.
+
+- `gaogao` wraps jail_set(2) as thinly as reasonable. Ideally, it would build
+  static iovecs, call jail_set(2), then execve(2); `gaogao` reads parameters
+  from its command line only as a concession to scripting.
+
+- `gaogao` avoids ad-hoc parsing where possible, by accepting input in a format
+  which is easy for it to *read*. It does rely on strtol(3) and inet_pton(3) to
+  parse integers and IP addresses, respectively, though.
+
+If needed, it should be very possible to write a program to parse arguments and
+pass them to `gaogao`; since `gaogao` handles the necessary library calls, that
+program can easily be in a language more suited to string manipulation than C.
+As a bonus, that program need not even run as super-user, as `gaogao` must, so
+it may escalate *after* handling tricky input.
+
+Sanity under process supervision is an explicit goal for `gaogao`. jail(8) is
+often unsuitable for supervision because it *assumes double-forking daemons*;
+for example, it forks a child, expecting it to quickly exit successfully; it
+uses a configuration file which is redundant with its command line arguments
+because it expects to be called manually, or with few arguments, rather than
+controlled from a service directory.
+
+`gaogao` tries to do its job and get out of the way (i.e. exec). If this is not
+sufficient, it's hopefully possible to script around it.
+
+Caveats
+-------
+
+This program is probably not correct. The Makefile is almost certainly wrong.
+There's no testing beyond verifying that it outwardly appears to work for me.
+
+Improvements would be appreciated.
