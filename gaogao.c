@@ -21,41 +21,7 @@ int main(int const argc, char **argv) {
 	while (*++argv && **argv) {
 		if (**argv == ' ') ++*argv;
 		switch (**argv) {
-			case 'A':
-				jiov[niov].iov_len  = sizeof(struct in_addr);
-				jiov[niov].iov_base = alloca(jiov[niov].iov_len);
-				if (inet_pton(AF_INET, *argv+1, jiov[niov].iov_base) != 1) {
-					fprintf(stderr, "Illegible address \"%s\".\n", *argv+1);
-					return 2;
-				}
-				break;
-
-			case 'G':
-				jiov[niov].iov_len  = sizeof(struct in6_addr);
-				jiov[niov].iov_base = alloca(jiov[niov].iov_len);
-				if (inet_pton(AF_INET6, *argv+1, jiov[niov].iov_base) != 1) {
-					fprintf(stderr, "Illegible address \"%s\".\n", *argv+1);
-					return 2;
-				}
-				break;
-
-			case 'J':
-				jiov[niov].iov_len  = sizeof(int);
-				jiov[niov].iov_base = alloca(jiov[niov].iov_len);
-				*(int *)jiov[niov].iov_base = (int)strtol(*argv+1, NULL, 0);
-				break;
-
-			case 'S':
-				jiov[niov].iov_base = *argv+1;
-				jiov[niov].iov_len  = strlen(*argv);
-				break;
-
-			case 'Z':
-				jiov[niov].iov_base = NULL;
-				jiov[niov].iov_len  = 0;
-				break;
-
-			case 'M':
+			case '-':
 				while (*++*argv) {
 					switch (**argv) {
 						case 'c': mode |= JAIL_CREATE;  break;
@@ -73,13 +39,29 @@ int main(int const argc, char **argv) {
 				}
 				continue;
 
+			case 'S':
+				jiov[niov].iov_base = *argv+1;
+				jiov[niov].iov_len  = strlen(*argv);
+				break;
+
+			case '0':
+				jiov[niov].iov_base = NULL;
+				jiov[niov].iov_len  = 0;
+				break;
+
+			case 'J':
+				jiov[niov].iov_len  = sizeof(int);
+				jiov[niov].iov_base = alloca(jiov[niov].iov_len);
+				*(int *)jiov[niov].iov_base = (int)strtol(*argv+1, NULL, 0);
+				break;
+
 			default:
 				fprintf(stderr, "Illegible parameter \"%s\".\n", *argv);
 				return 2;
 		}
 		niov++;
 	}
-	
+
 	if (jail_set(jiov, niov, mode) == -1) {
 		perror("jail_set");
 		return 1;
