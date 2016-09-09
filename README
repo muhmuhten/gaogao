@@ -9,15 +9,15 @@ Usage
 `<type>` is a single character, optionally prefixed by a space, and the meaning
 of `<data>` depends on `<type>` as follows:
 
-- `S`: a string, `<data>`
-- `J`: an int; `<data>` is parsed by strtol(3)
-- `Z`: NULL; `<data>` is meaningless and discarded
-- `A`: an IPv4 address; `<data>` is parsed by inet_pton(3)
-- `G`: an IPv6 address; `<data>` is parsed by inet_pton(3)
-- `M`: a list of case-sensitive flags, upper- and lower-case `cuad`, represent
+- `-`: a flag string containing the upper- and lower-case letters `cuad`,
   JAIL_CREATE, JAIL_UPDATE, JAIL_ATTACH, and JAIL_DYING, respectively. The flag
   is ORed in on a lowercase letter and masked out for an uppercase letter. See
   jail(2) for detail on what the flags mean.
+- `S`: a zero-terminated string, `<data>`
+- `0`: NULL; `<data>` and discarded
+- `J`: an int; `<data>` is parsed by strtol(3)
+- `B`: a sequence of bytes; `<data>` is parsed by calling strtol(3) repeatedly,
+  skipping one separator character after each call.
 
 Description
 -----------
@@ -70,5 +70,7 @@ This program is probably not correct. The Makefile is almost certainly wrong.
 There's no testing beyond verifying that it outwardly appears to work for me.
 
 The interface should be considered experimental and may change at any time.
+This document is not necessarily updated to the state of the code; in case of
+inconsistency, options are described by the `switch (**argv)` in gaogao.c.
 
 Improvements would be appreciated.
