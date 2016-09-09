@@ -33,7 +33,7 @@ compatibility with skarnet's execlineb syntax, parameters may be prefixed with
 a single space, which is ignored.
 
 The interface is admittedly not very human-friendly; calls looks something like
-`gaogao Sjid J6 Snopersist Z MCu`. While it is important that `gaogao` is not
+`gaogao -Cu Sjid J6 Snopersist 0`. While it is important that `gaogao` is not
 hostile to being run from a shell (which restricts its tag characters), other
 design considerations take priority over presenting a friendly interface:
 
