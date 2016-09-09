@@ -23,46 +23,42 @@ Description
 -----------
 
 The `gaogao` program is a very thin wrapper around FreeBSD's jail_set(2) system
-call. It reads parameters from its command line up to the first empty string,
-calls jail_set(2), and, if successful, optionally execvp(3)s the rest of its
-command line.
+call. It reads parameters from its command line up to the first empty string.
+calls jail_set(2), and, if successful, execvp(3)s the rest of its command line.
 
-In order to minimize error-prone parsing, `gaogao` takes its arguments only as
+In order to minimize parsing complexity, `gaogao` takes its arguments only as
 *char-tagged unions*. That is, each argument consists of a single character
-denoting its type followed by a string representing its value.  Optionally, for
+denoting its type followed by a string representing its value. Optionally, for
 compatibility with skarnet's execlineb syntax, parameters may be prefixed with
 a single space, which is ignored.
 
-The interface, with invocations of the form `gaogao Sjid J6 Snopersist Z MCu`,
-is admittedly not very human-friendly. While it is important that `gaogao` is
-not overtly hostile to being run from a shell, other design considerations take
-priority over presenting a friendly interface:
+The interface is admittedly not very human-friendly; calls looks something like
+`gaogao Sjid J6 Snopersist Z MCu`. While it is important that `gaogao` is not
+hostile to being run from a shell (which restricts its tag characters), other
+design considerations take priority over presenting a friendly interface:
 
 - `gaogao` provides a *scriptable* interface to jail_set(2). This requires its
   input to be simple to emit correctly, while being expressive enough to set
   any reasonable parameters a user might supply without neeeding recompilation.
-  any reasonable set of parameters a user might want to supply.
 
 - `gaogao` wraps jail_set(2) as thinly as reasonable. Ideally, it would build
   static iovecs, call jail_set(2), then execve(2); `gaogao` reads parameters
   from its command line only as a concession to scripting.
 
-- `gaogao` avoids ad-hoc parsing where possible, by accepting input in a format
-  which is easy for it to *read*. It does rely on strtol(3) and inet_pton(3) to
-  parse integers and IP addresses, respectively, though.
+- `gaogao` avoids complex, error-prone parsing; its input format is designed to
+  be trivial for it to *read*, and simple for another program to *write*. It
+  outsources the task of parsing integers and IP addresses to library routines
+  strtol(3) and inet_pton(3), respectively.
 
-If needed, it should be very possible to write a program to parse arguments and
-pass them to `gaogao`; since `gaogao` handles the necessary library calls, that
-program can easily be in a language more suited to string manipulation than C.
-As a bonus, that program need not even run as super-user, as `gaogao` must, so
-it may escalate *after* handling tricky input.
+It should be very possible to write a program to parse arguments and pass them
+to `gaogao`; since `gaogao` handles the necessary library calls and exposes a
+textual interface, that program can easily be in a language better suited to
+string manipulation than C.
 
 Sanity under process supervision is an explicit goal for `gaogao`. jail(8) is
-often unsuitable for supervision because it *assumes double-forking daemons*;
-for example, it forks a child, expecting it to quickly exit successfully; it
-uses a configuration file which is redundant with its command line arguments
-because it expects to be called manually, or with few arguments, rather than
-controlled from a service directory.
+unsuitable because it *assumes double-forking daemons*: it forks and expects
+the jail command to exit successfully, providing no support for signalling a
+long-running process.
 
 `gaogao` tries to do its job and get out of the way (i.e. exec). If this is not
 sufficient, it's hopefully possible to script around it.
@@ -72,5 +68,7 @@ Caveats
 
 This program is probably not correct. The Makefile is almost certainly wrong.
 There's no testing beyond verifying that it outwardly appears to work for me.
+
+The interface should be considered experimental and may change at any time.
 
 Improvements would be appreciated.
