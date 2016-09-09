@@ -51,6 +51,21 @@ int main(int const argc, char **argv) {
 				*(int *)jiov[niov].iov_base = (int)strtol(*argv+1, NULL, 0);
 				break;
 
+			case 'T':
+				jiov[niov].iov_base = *argv+2;
+				jiov[niov].iov_len  = 0;
+
+				if (*++*argv) {
+					char nul = **argv;
+					while (*++*argv) {
+						if (**argv == nul) {
+							**argv = 0;
+						}
+						jiov[niov].iov_len++;
+					}
+				}
+				break;
+
 			default: errx(2, "Illegible parameter \"%s\".", *argv);
 		}
 		niov++;
