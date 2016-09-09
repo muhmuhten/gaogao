@@ -4,6 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <err.h>
+
 #include <sys/param.h>
 #include <sys/jail.h>
 #include <sys/uio.h>
@@ -13,7 +15,7 @@ int main(int const argc, char **argv) {
 	struct iovec *const jiov = alloca(argc * sizeof(struct iovec));
 
 	if (!*argv) return 2;
-	
+
 	while (*++argv && **argv) {
 		if (**argv == ' ') ++*argv;
 		switch (**argv) {
@@ -28,12 +30,10 @@ int main(int const argc, char **argv) {
 						case 'U': mode &= ~JAIL_UPDATE; break;
 						case 'A': mode &= ~JAIL_ATTACH; break;
 						case 'D': mode &= ~JAIL_DYING;  break;
-						default:
-							fprintf(stderr, "Illegible mode '%c'.\n", **argv);
-							return 2;
+						default: errx(2, "Invalid mode '%c'.", **argv);
 					}
 				}
-				continue;
+				continue; // don't increment niov
 
 			case 'S':
 				jiov[niov].iov_base = *argv+1;
@@ -51,22 +51,15 @@ int main(int const argc, char **argv) {
 				*(int *)jiov[niov].iov_base = (int)strtol(*argv+1, NULL, 0);
 				break;
 
-			default:
-				fprintf(stderr, "Illegible parameter \"%s\".\n", *argv);
-				return 2;
+			default: errx(2, "Illegible parameter \"%s\".", *argv);
 		}
 		niov++;
 	}
 
-	if (jail_set(jiov, niov, mode) == -1) {
-		perror("jail_set");
-		return 1;
-	}
-
+	if (jail_set(jiov, niov, mode) == -1) err(1, "jail_set");
 	if (!*argv || !*++argv) return 0;
 
 	execvp(*argv, argv);
-	perror(*argv);
-	return 1;
+	err(1, "%s", *argv);
 }
 /* ex: se ts=4 sw=4 noet : */
