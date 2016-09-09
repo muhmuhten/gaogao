@@ -91,6 +91,16 @@ int main(int const argc, char **argv) {
 				jiov[niov].iov_len /= 2;
 				break;
 
+			case 'B':
+				jiov[niov].iov_base = *argv;
+				jiov[niov].iov_len  = 0;
+
+				while (**argv && *++*argv) {
+					*((char *)jiov[niov].iov_base + jiov[niov].iov_len++) =
+						strtol(*argv, argv, 0);
+				}
+				break;
+
 			default: errx(2, "Illegible parameter \"%s\".", *argv);
 		}
 		niov++;
