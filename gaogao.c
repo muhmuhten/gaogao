@@ -52,6 +52,9 @@ int main(int const argc, char **argv) {
 				break;
 
 			case 'B':
+				/* NOTE: it's safe to write this directly back into argv
+				 * because a char takes up only one byte, space for which is
+				 * provided by the char skipped before each strtol(). */
 				jiov[niov].iov_base = *argv;
 				jiov[niov].iov_len  = 0;
 
