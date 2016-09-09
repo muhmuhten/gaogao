@@ -8,10 +8,6 @@
 #include <sys/jail.h>
 #include <sys/uio.h>
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-
 int main(int const argc, char **argv) {
 	int niov = 0, mode = JAIL_CREATE|JAIL_ATTACH;
 	struct iovec *const jiov = alloca(argc * sizeof(struct iovec));
