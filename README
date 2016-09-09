@@ -11,13 +11,13 @@ of `<data>` depends on `<type>` as follows:
 
 - `-`: a flag string containing the upper- and lower-case letters `cuad`,
   JAIL_CREATE, JAIL_UPDATE, JAIL_ATTACH, and JAIL_DYING, respectively. The flag
-  is ORed in on a lowercase letter and masked out for an uppercase letter. See
-  jail(2) for detail on what the flags mean.
+  is ORed in on each lowercase letter and masked out on each uppercase letter.
+  See jail(2) for detail on what the flags mean.
 - `S`: a zero-terminated string, `<data>`
-- `0`: NULL; `<data>` and discarded
+- `0`: NULL; `<data>` is discarded
 - `J`: an int; `<data>` is parsed by strtol(3)
 - `B`: a sequence of bytes; `<data>` is parsed by calling strtol(3) repeatedly,
-  skipping one separator character after each call.
+  skipping one separator character after each call
 
 Description
 -----------
