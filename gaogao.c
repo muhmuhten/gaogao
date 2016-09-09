@@ -66,31 +66,6 @@ int main(int const argc, char **argv) {
 				}
 				break;
 
-			case 'H':
-				jiov[niov].iov_base = *argv+1;
-				jiov[niov].iov_len  = 0;
-
-				while (*++*argv) {
-					char nib = **argv;
-					if      ('0' <= nib && nib <= '9') nib -= '0';
-					else if ('A' <= nib && nib <= 'F') nib -= 'A'-10;
-					else if ('a' <= nib && nib <= 'f') nib -= 'a'-10;
-					else errx(2, "Invalid hex digit '%c'.", nib);
-
-					char *pos = *argv - ++jiov[niov].iov_len/2;
-					if (jiov[niov].iov_len & 1) {
-						*pos = nib << 4;
-					}
-					else {
-						*pos |= nib;
-					}
-				}
-
-				if (jiov[niov].iov_len & 1)
-					errx(2, "Hex not byte-aligned.");
-				jiov[niov].iov_len /= 2;
-				break;
-
 			case 'B':
 				jiov[niov].iov_base = *argv;
 				jiov[niov].iov_len  = 0;
