@@ -12,7 +12,7 @@
 
 int main(int const argc, char **argv) {
 	int niov = 0, mode = JAIL_CREATE|JAIL_ATTACH;
-	struct iovec *const jiov = alloca(argc * sizeof(struct iovec));
+	struct iovec jiov[argc];
 
 	if (!*argv) return 2;
 
@@ -33,7 +33,7 @@ int main(int const argc, char **argv) {
 				default: errx(2, "Invalid mode '%c'.", **argv);
 				}
 			}
-			continue; // don't increment niov
+			continue; /* don't increment niov */
 
 		case 'S':
 			jiov[niov].iov_base = *argv+1;
