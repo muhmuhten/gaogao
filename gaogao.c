@@ -45,12 +45,6 @@ int main(int const argc, char **argv) {
 			jiov[niov].iov_len  = 0;
 			break;
 
-		case 'J':
-			jiov[niov].iov_len  = sizeof(int);
-			jiov[niov].iov_base = alloca(jiov[niov].iov_len);
-			*(int *)jiov[niov].iov_base = (int)strtol(*argv+1, NULL, 0);
-			break;
-
 		case 'B':
 			/* NOTE: it's safe to write this directly back into argv because a
 			 * char takes up only one byte, space for which is provided by the
@@ -58,10 +52,20 @@ int main(int const argc, char **argv) {
 			jiov[niov].iov_base = *argv;
 			jiov[niov].iov_len  = 0;
 
+			/* We must check **argv, as otherwise we'd skip over the '\0' at
+			 * the end of an argument and try parsing whatever comes next. */
 			while (**argv && *++*argv) {
 				*((char *)jiov[niov].iov_base + jiov[niov].iov_len++) =
 					strtol(*argv, argv, 0);
 			}
+			break;
+
+		case 'J':
+			/* NOTE: it is NOT safe to write back into argv! The argument may
+			 * not be long enough to store an int to the same space. */
+			jiov[niov].iov_len  = sizeof(int);
+			jiov[niov].iov_base = alloca(jiov[niov].iov_len);
+			*(int *)jiov[niov].iov_base = (int)strtol(*argv+1, NULL, 0);
 			break;
 
 		default: errx(2, "Illegible parameter \"%s\".", *argv);
