@@ -5,6 +5,7 @@ Usage
 -----
 
     gaogao [<type><data> ...] ["" prog...]
+	gaogao { [<type><data> ...] } [prog...]
 
 `<type>` is a single character, optionally prefixed by a space, and the meaning
 of `<data>` depends on `<type>` as follows:
@@ -15,9 +16,9 @@ of `<data>` depends on `<type>` as follows:
   See jail(2) for detail on what the flags mean.
 - `S`: a zero-terminated string, `<data>`
 - `0`: NULL; `<data>` is discarded
-- `J`: an int; `<data>` is parsed by strtol(3)
 - `B`: a sequence of bytes; `<data>` is parsed by calling strtol(3) repeatedly,
   skipping one separator character after each call
+- `J`: an int; `<data>` is parsed by strtol(3)
 
 Description
 -----------
@@ -26,42 +27,26 @@ The `gaogao` program is a very thin wrapper around FreeBSD's jail_set(2) system
 call. It reads parameters from its command line up to the first empty string,
 calls jail_set(2), and, if successful, execvp(3)s the rest of its command line.
 
-In order to minimize parsing complexity, `gaogao` takes input from the command
-line as *char-tagged unions*; each argument consists of a character denoting
-its type followed by a string representation of its value. For compatibility
-with skarnet's execlineb syntax, parameters may be be additionally prefixed by
-a single space, which is ignored.
+`gaogao`'s main purpose is to expose jail functionality to scripting at a lower
+level than jail(8). Although its interface may be awkward for interactive use,
+it is amenable to a wrapper program providing a more conventional interface, as
+`gaogao`'s input format is intentionally simple to emit correctly.
 
-The interface is admittedly not very human-friendly; calls look something like
-`gaogao -Cu Sjid J6 Snopersist 0`. While it is important that `gaogao` is not
-hostile to being run from a shell (which restricts its tag characters), other
-design considerations take priority over presenting a friendly interface:
-
-- `gaogao` provides a *scriptable* interface to jail_set(2). This requires its
-  input to be simple to emit correctly, while being expressive enough to set
-  any reasonable parameters a user might supply without neeeding recompilation.
-
-- `gaogao` wraps jail_set(2) as thinly as reasonable. Ideally, it would build
-  static iovecs, call jail_set(2), then execve(2); `gaogao` reads parameters
-  from its command line only as a concession to scripting.
-
-- `gaogao` avoids complex, error-prone parsing; its input format is designed to
-  be trivial for it to *read*, and simple for another program to *write*. It
-  outsources the task of parsing integers and IP addresses to library routines
-  strtol(3) and inet_pton(3), respectively.
-
-It should be very possible to write a program to parse arguments and pass them
-to `gaogao`; since `gaogao` handles the necessary library calls and exposes a
-textual interface, that program can easily be in a language better suited to
-string manipulation than C.
+To minimize parsing complexity, `gaogao` reads options from the command line up
+to the first empty argument as a sequence of char-tagged unions: each argument
+is a simple string representation of a value prefixed by a format marker. (For
+use with [execline](http://skarnet.org/software/execline/), up to one  space is
+ignored before each option.) Each option is transcribed by very *simple* code
+into an iovec and passed directly to jail_set(2). Any arguments past the first
+empty string are not parsed at all but passed to execvp(3) directly.
 
 Sanity under process supervision is an explicit goal for `gaogao`. jail(8) is
 unsuitable because it *assumes double-forking daemons*: it forks and expects
-the jail command to exit successfully, providing no support for signalling a
-long-running process.
+the jail command to exit successfully, and fails to support sending signals to
+a long-running process.
 
-`gaogao` tries to do its job and get out of the way (i.e. exec). If this is not
-sufficient, it's hopefully possible to script around it.
+On the whole, `gaogao` tries to do its job and get out of the way (i.e. exec);
+and if that's not sufficient, to provide the tools to script around it.
 
 Caveats
 -------
@@ -72,5 +57,8 @@ There's no testing beyond verifying that it outwardly appears to work for me.
 The interface should be considered experimental and may change at any time.
 This document is not necessarily updated to the state of the code; in case of
 inconsistency, options are described by the `switch (**argv)` in gaogao.c.
+
+Please report any unintentional architecture-dependence! There's likely to be
+e.g. endianness-dependency when specifying certain jail parameters.
 
 Improvements would be appreciated.
