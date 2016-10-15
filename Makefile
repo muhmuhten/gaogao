@@ -9,6 +9,6 @@ clean:
 
 .SUFFIXES:	.c .so
 .c:
-	cc -pipe -Wall -pedantic -Os -o $@ $<
+	cc -pipe -Wall -pedantic -Os -s -o $@ $<
 .c.so:
-	cc -pipe -Wall -pedantic -Os -shared -fPIC -o $@ $<
+	cc -pipe -Wall -pedantic -Os -s -shared -fPIC -o $@ $<
